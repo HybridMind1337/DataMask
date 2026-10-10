@@ -68,6 +68,9 @@ func (o *Orchestrator) Execute(ctx context.Context, source, target database.Driv
 			}
 		}
 		deriver = d
+		if deriver != nil {
+			defer deriver.ZeroMemory()
+		}
 	}
 
 	tCtx := masking.NewTransformContext(

@@ -63,7 +63,7 @@ func (d *DumpWriter) WriteBatch(ctx context.Context, table *discovery.Table, bat
 
 	var sb strings.Builder
 	colList := strings.Join(batch.Columns, ", ")
-	if d.driver == "postgres" {
+	if d.driver == "postgres" || d.driver == "sqlite" {
 		quotedCols := make([]string, len(batch.Columns))
 		for i, c := range batch.Columns {
 			quotedCols[i] = fmt.Sprintf("%q", c)
@@ -86,6 +86,9 @@ func (d *DumpWriter) WriteBatch(ctx context.Context, table *discovery.Table, bat
 		if d.driver == "postgres" {
 			sb.WriteString(fmt.Sprintf("INSERT INTO %q.%q (%s) VALUES (%s);\n",
 				table.Schema, table.Name, colList, strings.Join(vals, ", ")))
+		} else if d.driver == "sqlite" {
+			sb.WriteString(fmt.Sprintf("INSERT INTO %q (%s) VALUES (%s);\n",
+				table.Name, colList, strings.Join(vals, ", ")))
 		} else {
 			sb.WriteString(fmt.Sprintf("INSERT INTO `%s`.`%s` (%s) VALUES (%s);\n",
 				table.Schema, table.Name, colList, strings.Join(vals, ", ")))

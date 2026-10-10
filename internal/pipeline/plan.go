@@ -9,6 +9,7 @@ import (
 	"github.com/HybridMind1337/DataMask/internal/database"
 	"github.com/HybridMind1337/DataMask/internal/database/mysql"
 	"github.com/HybridMind1337/DataMask/internal/database/postgres"
+	"github.com/HybridMind1337/DataMask/internal/database/sqlite"
 	"github.com/HybridMind1337/DataMask/internal/discovery"
 	"github.com/HybridMind1337/DataMask/internal/graph"
 )
@@ -23,6 +24,8 @@ func (f *Factory) ConnectSource(ctx context.Context, cfg config.DatabaseConfig) 
 		return postgres.NewDriver(ctx, cfg, true) // read-only enforced
 	case "mysql", "mariadb":
 		return mysql.NewDriver(ctx, cfg, true)    // read-only enforced
+	case "sqlite":
+		return sqlite.NewDriver(ctx, cfg, true)   // read-only enforced
 	default:
 		return nil, fmt.Errorf("unsupported source driver: %s", cfg.Driver)
 	}
@@ -35,6 +38,8 @@ func (f *Factory) ConnectTarget(ctx context.Context, cfg config.DatabaseConfig) 
 		return postgres.NewDriver(ctx, cfg, false)
 	case "mysql", "mariadb":
 		return mysql.NewDriver(ctx, cfg, false)
+	case "sqlite":
+		return sqlite.NewDriver(ctx, cfg, false)
 	default:
 		return nil, fmt.Errorf("unsupported target driver: %s", cfg.Driver)
 	}

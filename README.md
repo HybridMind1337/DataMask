@@ -11,33 +11,71 @@
 
 DataMask creates privacy-safe copies of production databases for development, automated testing, and staging environments while preserving relational integrity, schema structure, and realistic data characteristics.
 
-```
-Source DB (Read-Only)
-        │
-        ▼
-Schema & Graph Discovery (DAG & FK TopoSort)
-        │
-        ▼
-Sensitive Data Detection (PII / Risk Classification)
-        │
-        ▼
-Masking Pipeline (Chunked Streaming & HMAC Determinism)
-        │
-        ▼
-Target DB (Safe Staging / Dev)
-        │
-        ▼
-Integrity & Residual Privacy Verification
+```mermaid
+flowchart TD
+    subgraph Source ["Source Database (Protected Prod)"]
+        S1[(PostgreSQL / MySQL / SQLite)]
+    end
+
+    subgraph DiscoveryEngine ["1. Inspection & Intelligence"]
+        D1[Driver Read-Only Session]
+        D2[Schema & Column Inspector]
+        D3[Multi-Signal PII Detector]
+        D4[Relational DAG & Cycle Resolver]
+    end
+
+    subgraph TransformationEngine ["2. Masking Core (Streaming)"]
+        T1[Deterministic Key Deriver / HMAC-SHA256]
+        T2[Keyset / Cursor Batch Reader]
+        T3[Transformer Registry - 25+ Strategies]
+        T4[JSON / JSONB Deep Scrubber]
+        T5[ZeroMemory In-RAM Key Wiper]
+    end
+
+    subgraph SafeDestinations ["3. Output Destinations"]
+        Tgt[(Target Dev / Staging DB)]
+        Dump[Compressed SQL Stream .sql.gz]
+    end
+
+    subgraph AuditGate ["4. Verification & Audit"]
+        V1[FK Integrity Validator]
+        V2[Residual PII Leak Scanner]
+        V3[Cryptographic SHA-256 Audit Report]
+    end
+
+    S1 -->|Enforced Read-Only| D1
+    D1 --> D2
+    D2 --> D3
+    D2 --> D4
+    D3 & D4 --> T2
+    T1 -.->|Entropy Context| T3
+    T2 --> T3
+    T3 --> T4
+    T4 -->|Bulk Copy / Batch Insert| Tgt
+    T4 -->|SQL Insert Stream| Dump
+    T4 -.->|Shutdown| T5
+    Tgt --> V1 & V2
+    V1 & V2 --> V3
+
+    classDef source fill:#f9d5d5,stroke:#c0392b,stroke-width:2px,color:#900;
+    classDef target fill:#d5f9d8,stroke:#27ae60,stroke-width:2px,color:#060;
+    classDef engine fill:#e8f4fd,stroke:#2980b9,stroke-width:2px,color:#036;
+    class S1 source;
+    class Tgt,Dump target;
+    class D1,D2,D3,D4,T1,T2,T3,T4,T5,V1,V2,V3 engine;
 ```
 
 ---
 
 ## Key Features
 
+- **Multi-Engine Support:** Native driver adapters for **PostgreSQL**, **MySQL/MariaDB**, and **SQLite** (pure Go, CGO-free via `modernc.org/sqlite`).
 - **Zero-Config Single-Command Run:** Mask directly from source to target without requiring a pre-existing config file (`datamask mask --source "..." --target "..." --auto`).
 - **Interactive Onboarding Wizard (`datamask wizard`):** Step-by-step interactive CLI guide for first-time database connection, scanning, and safe copying.
 - **Automated Configuration Generator (`datamask init`):** Introspects source schemas and writes an optimal, ready-to-use `datamask.yaml` with detected PII strategies.
 - **Compressed Dump Streamer (`datamask dump`):** Direct SQL / `.sql.gz` streaming without requiring a secondary database.
+- **Keyset (Seek) Pagination Streaming:** $O(1)$ fast indexed pagination on integer primary keys, avoiding $O(N^2)$ deep offset degradation.
+- **In-Memory Key Zeroing:** Cryptographic secret keys are actively wiped from RAM upon execution finish (`ZeroMemory()`) to prevent dump leaks.
 - **Deep JSON / JSONB Masking:** Recursively parses embedded JSON structures and sanitizes nested sensitive keys (`email`, `token`, `phone`, `password`, `name`).
 - **Data Subsetting & Framework Presets:** Extract micro-datasets (`--subset-rows`, `--subset-percent`) with pre-configured rules for Laravel, Django, Rails, and WordPress.
 - **CI/CD Quality Gate Fail-Safe (`datamask verify --ci`):** Strict verification mode exiting with error codes if residual PII or broken constraints are detected.
@@ -54,6 +92,18 @@ Integrity & Residual Privacy Verification
 ---
 
 ## Installation
+
+### One-Liner Installers (Recommended)
+
+#### Linux & macOS
+```bash
+curl -sSL https://raw.githubusercontent.com/HybridMind1337/DataMask/main/scripts/install.sh | bash
+```
+
+#### Windows (PowerShell)
+```powershell
+iwr -useb https://raw.githubusercontent.com/HybridMind1337/DataMask/main/scripts/install.ps1 | iex
+```
 
 ### From Source
 ```bash

@@ -86,3 +86,13 @@ func (k *KeyDeriver) DeriveInt64(contextDomain string, input []byte, minVal, max
 	rangeSize := uint64(maxVal - minVal + 1)
 	return minVal + int64(val%rangeSize)
 }
+
+// ZeroMemory actively overwrites secret key bytes in RAM to prevent exposure in process memory dumps.
+func (k *KeyDeriver) ZeroMemory() {
+	if k == nil || len(k.secretKey) == 0 {
+		return
+	}
+	for i := range k.secretKey {
+		k.secretKey[i] = 0
+	}
+}

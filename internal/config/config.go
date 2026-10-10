@@ -161,7 +161,7 @@ func (c *Config) Validate() error {
 	if c.Source.Driver == "" {
 		return fmt.Errorf("source.driver is required")
 	}
-	validDrivers := map[string]bool{"postgres": true, "mysql": true, "mariadb": true}
+	validDrivers := map[string]bool{"postgres": true, "mysql": true, "mariadb": true, "sqlite": true}
 	if !validDrivers[strings.ToLower(c.Source.Driver)] {
 		return fmt.Errorf("unsupported source driver: %s", c.Source.Driver)
 	}
@@ -184,7 +184,7 @@ func (c *Config) IsProtectedTarget(targetName string) bool {
 	return false
 }
 
-// ParseDSN parses standard connection URL strings (postgres://user:pass@host:port/db, mysql://user:pass@host:port/db)
+// ParseDSN parses standard connection URL strings (postgres://, mysql://, sqlite://)
 func ParseDSN(raw string) (DatabaseConfig, error) {
 	var cfg DatabaseConfig
 	raw = strings.TrimSpace(raw)
@@ -242,5 +242,13 @@ func ParseDSN(raw string) (DatabaseConfig, error) {
 		return cfg, nil
 	}
 
-	return cfg, fmt.Errorf("unrecognized database url scheme: %s (expected postgres:// or mysql://)", raw)
+	if strings.HasPrefix(raw, "sqlite://") || strings.HasPrefix(raw, "sqlite3://") {
+		cfg.Driver = "sqlite"
+		path := strings.TrimPrefix(raw, "sqlite://")
+		path = strings.TrimPrefix(path, "sqlite3://")
+		cfg.Database = path
+		return cfg, nil
+	}
+
+	return cfg, fmt.Errorf("unrecognized database url scheme: %s (expected postgres://, mysql://, or sqlite://)", raw)
 }
