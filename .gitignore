@@ -1,0 +1,40 @@
+# Binaries
+bin/
+dist/
+*.exe
+*.exe~
+*.dll
+*.so
+*.dylib
+
+# Test artifacts & coverage
+*.out
+*.test
+coverage.txt
+profile.out
+
+# Local configs and environments
+.env
+.env.local
+datamask.local.yaml
+*.local
+
+# Database dumps generated locally
+*.sql
+*.sql.gz
+*.sqlite
+*.db
+
+# Temporary checkpoints
+.datamask_checkpoint.json
+
+# IDE & Editor files
+.idea/
+.vscode/
+*.swp
+*.swo
+*~
+.DS_Store
+
+# OS specific
+Thumbs.db

@@ -1,0 +1,85 @@
+version: 1
+
+source:
+  driver: postgres
+  host: ${DB_SOURCE_HOST:-localhost}
+  port: 5432
+  database: ${DB_SOURCE_NAME:-production_demo}
+  username: ${DB_SOURCE_USER:-postgres}
+  password: ${DB_SOURCE_PASSWORD:-secret}
+  sslmode: disable
+  schema: public
+
+target:
+  driver: postgres
+  host: ${DB_TARGET_HOST:-localhost}
+  port: 5432
+  database: ${DB_TARGET_NAME:-staging_safe}
+  username: ${DB_TARGET_USER:-postgres}
+  password: ${DB_TARGET_PASSWORD:-secret}
+  sslmode: disable
+  schema: public
+
+settings:
+  deterministic: true
+  deterministic_key_env: DATAMASK_TRANSFORM_KEY
+  preserve_primary_keys: true
+  stop_on_error: true
+  batch_size: 5000
+  workers: 4
+  protected_environments:
+    - prod
+    - production
+    - live
+    - main
+    - primary
+    - master
+
+  development_auth:
+    enabled: true
+    password_env: DATAMASK_DEV_PASSWORD
+    fixed_hash: "$2y$10$TKh8H1.PfQx37YgCzwiKb.KjNyWgaHb9cbcoQgdIVFlYg7B77UdFm"
+
+tables:
+  users:
+    columns:
+      id:
+        strategy: preserve
+      email:
+        strategy: fake_email
+        deterministic: true
+      first_name:
+        strategy: fake_first_name
+      last_name:
+        strategy: fake_last_name
+      phone:
+        strategy: fake_phone
+      password:
+        strategy: dev_auth
+      remember_token:
+        strategy: null
+      created_at:
+        strategy: preserve
+
+  orders:
+    columns:
+      id:
+        strategy: preserve
+      user_id:
+        strategy: preserve
+      total:
+        strategy: preserve
+      billing_email:
+        strategy: fake_email
+        deterministic: true
+
+  support_tickets:
+    columns:
+      id:
+        strategy: preserve
+      user_id:
+        strategy: preserve
+      subject:
+        strategy: preserve
+      message:
+        strategy: pattern_scrub

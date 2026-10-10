@@ -1,0 +1,42 @@
+services:
+  postgres-source:
+    image: postgres:16-alpine
+    container_name: datamask-postgres-source
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: secret
+      POSTGRES_DB: production_demo
+    ports:
+      - "5432:5432"
+    volumes:
+      - ./fixtures/postgres/01_ecommerce_synthetic.sql:/docker-entrypoint-initdb.d/01_synthetic.sql:ro
+
+  postgres-target:
+    image: postgres:16-alpine
+    container_name: datamask-postgres-target
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: secret
+      POSTGRES_DB: staging_safe
+    ports:
+      - "5433:5432"
+
+  mysql-source:
+    image: mysql:8.0
+    container_name: datamask-mysql-source
+    environment:
+      MYSQL_ROOT_PASSWORD: secret
+      MYSQL_DATABASE: production_demo
+    ports:
+      - "3306:3306"
+    volumes:
+      - ./fixtures/mysql/01_ecommerce_synthetic.sql:/docker-entrypoint-initdb.d/01_synthetic.sql:ro
+
+  mysql-target:
+    image: mysql:8.0
+    container_name: datamask-mysql-target
+    environment:
+      MYSQL_ROOT_PASSWORD: secret
+      MYSQL_DATABASE: staging_safe
+    ports:
+      - "3307:3306"
